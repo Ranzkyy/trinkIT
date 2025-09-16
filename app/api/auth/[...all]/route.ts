@@ -1,9 +1,23 @@
 import { auth } from "@/lib/auth"; // path to your auth file
 import { toNextJsHandler } from "better-auth/next-js";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-// Handler BetterAuth default
-export const { GET } = toNextJsHandler(auth);
+// // Handler BetterAuth default
+// export const { GET } = toNextJsHandler(auth);
+
+export async function GET() {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    return NextResponse.json({ session });
+  } catch (error) {
+    console.error("Session fetch error:", error);
+    return NextResponse.json({ session: null });
+  }
+}
 
 // Custom sign in handler
 export async function POST(req: Request) {

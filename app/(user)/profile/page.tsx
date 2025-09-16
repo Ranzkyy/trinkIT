@@ -1,23 +1,22 @@
 import React from "react";
-import AuthClient from "./auth-client";
-import { auth } from "@/lib/auth";
+import ProfileClient from "./profile-client";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-const LoginPage = async () => {
+const ProfilePage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (session) {
-    redirect("/");
+  if (!session) {
+    redirect("/auth");
   }
-
   return (
     <div>
-      <AuthClient />
+      <ProfileClient session={session} />
     </div>
   );
 };
 
-export default LoginPage;
+export default ProfilePage;
