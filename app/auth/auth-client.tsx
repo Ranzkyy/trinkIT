@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { signIn, signInSocial, signUp } from "./auth-actions";
+import { useInvalidateSession } from "@/hooks/use-session";
+import { useRouter } from "next/navigation";
 
 const AuthClient = () => {
   const [isSignin, setIsSignin] = useState(true);
@@ -11,11 +13,15 @@ const AuthClient = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const invalidateSession = useInvalidateSession();
+  const router = useRouter();
+
   const handleSocialAuth = async (provider: "google" | "github") => {
     setIsLoading(true);
     setError("");
     try {
       await signInSocial(provider);
+      // Session akan di-update otomatis setelah redirect
     } catch (err) {
       setError(
         `Error during sign in ${provider}: ${
@@ -34,12 +40,20 @@ const AuthClient = () => {
     try {
       if (isSignin) {
         const result = await signIn(email, password);
-        if (!result.user) {
+        if (result.user) {
+          // Invalidate cache untuk refresh session
+          invalidateSession();
+          router.push("/");
+        } else {
           setError("Sign in failed");
         }
       } else {
         const result = await signUp(email, password, name);
-        if (!result.user) {
+        if (result.user) {
+          // Invalidate cache untuk refresh session
+          invalidateSession();
+          router.push("/");
+        } else {
           setError("Sign up failed");
         }
       }

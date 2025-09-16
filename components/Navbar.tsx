@@ -1,15 +1,17 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { auth } from "@/lib/auth";
 
-const Navbar = () => {
+type Session = typeof auth.$Infer.Session;
+
+function Navbar({ session }: { session: Session | null }) {
   const pathname = usePathname();
 
   const menuItems = [
     { name: "Home", href: "/" },
     { name: "Menu", href: "/menu" },
     { name: "Cart", href: "/cart" },
-    { name: "Login", href: "/login" },
   ];
 
   const activeMenu =
@@ -38,11 +40,23 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            <Link
+              key={session ? "Profile" : "Sign In"}
+              href={session ? "/profile" : "/auth"}
+              className={`relative transition-all ease-in-out px-3 py-1 rounded 
+                ${
+                  pathname === (session ? "/profile" : "/auth")
+                    ? "text-green-600 font-semibold bg-green-100"
+                    : "text-gray-600 hover:text-green-600 hover:bg-gray-100"
+                }`}
+            >
+              {session ? "Profile" : "Sign In"}
+            </Link>
           </div>
         </nav>
       </div>
     </div>
   );
-};
+}
 
 export default Navbar;
