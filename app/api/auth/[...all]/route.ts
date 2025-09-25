@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth"; // path to your auth file
-import { toNextJsHandler } from "better-auth/next-js";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
