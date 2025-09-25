@@ -15,15 +15,16 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String         @id @default(cuid())
+  email         String         @unique
   name          String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean        @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+  likedMenus    UserMenuLike[]
 
   @@map("user")
 }
@@ -71,4 +72,32 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+model Menu {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  category    String         // Contoh: "coffee", "tea", "milkshake", "smoothie"
+  isAvailable Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  likes       UserMenuLike[]
+
+  @@map("menu")
+}
+
+model UserMenuLike {
+  id     String @id @default(cuid())
+  userId String
+  menuId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menu   Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, menuId])
+  @@map("user_menu_like")
 }
