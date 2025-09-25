@@ -3,7 +3,6 @@
 import { Heart, Key, Minus, Plus, ShoppingCart } from "lucide-react";
 import React from "react";
 import Image from "next/image";
-
 import { useEffect, useState } from "react";
 
 type Menu = {
@@ -18,11 +17,20 @@ type Menu = {
 
 const CardProduct = () => {
   const [menus, setMenus] = useState<Menu[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const toggleLike = async (index: number, menuId: string) => {
-    setIsLoading(true);
+    // Optimistic Update: Update UI immediately
+    const updatedMenus = [...menus];
+    const previousState = updatedMenus[index].isLiked;
+    const newState = !previousState;
+
+    // Update UI first for instant feedback
+    updatedMenus[index].isLiked = newState;
+    setMenus(updatedMenus);
+
     try {
+      // Send request to backend in background
       const response = await fetch("/api/menu/like", {
         method: "POST",
         headers: {
@@ -33,22 +41,27 @@ const CardProduct = () => {
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
-        // Update local state
-        const updatedMenus = [...menus];
-        updatedMenus[index].isLiked = result.isLiked;
-        setMenus(updatedMenus);
-      } else {
+      if (!response.ok || !result.success) {
+        // Rollback if API call failed
+        const rollbackMenus = [...menus];
+        rollbackMenus[index].isLiked = previousState;
+        setMenus(rollbackMenus);
+
         console.error("Like/Unlike failed:", result.error);
-        // If unauthorized, redirect to login
+
+        // Show error feedback (optional)
         if (response.status === 401) {
           window.location.href = "/auth";
         }
       }
+      // If success, UI is already updated, no need to do anything
     } catch (error) {
+      // Rollback on network error
+      const rollbackMenus = [...menus];
+      rollbackMenus[index].isLiked = previousState;
+      setMenus(rollbackMenus);
+
       console.error("Error toggling like:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
